@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "programs/*"
+]
+authors = [
+    "Stefan Dragisic <91stefan@gmail.com>",
+]

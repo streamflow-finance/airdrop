@@ -1,0 +1,9 @@
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+airdrop = "Mg6PaZpoDXkFvimZpWWK9WBeZ8FCfcGkgG76zSSsMn1"
+
+[scripts]
+test = "yarn run ts-mocha -t 1000000 tests/*.ts"

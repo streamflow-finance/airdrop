@@ -1,0 +1,24 @@
+[package]
+name = "airdrop"
+version = "0.1.0"
+description = "Airdrop for Streamflow"
+edition = "2018"
+
+authors = [
+    "Stefan Dragisic <91stefan@gmail.com>",
+]
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "airdrop"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.17.0"
+anchor-spl = "0.17.0"
+spl-token = { version = "3.1.1", features = ["no-entrypoint"] }

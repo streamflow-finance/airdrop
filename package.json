@@ -1,0 +1,21 @@
+{
+  "name": "streamflow-airdrop",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=11"
+  },
+  "scripts": {
+    "test": "anchor test"
+  },
+  "dependencies": {
+    "@project-serum/anchor": "^0.18.2",
+    "@solana/spl-token": "^0.1.8"
+  },
+  "devDependencies": {
+    "@types/expect": "^24.3.0",
+    "@types/mocha": "^9.0.0",
+    "chai": "^4.3.4",
+    "mocha": "^8.4.0",
+    "ts-mocha": "^8.0.0"
+  }
+}
