@@ -59,26 +59,27 @@ pub mod airdrop {
         Ok(())
     }
 
-    //Gives ownership of token account back to initializer and cancels airdrop
-    pub fn cancel_airdrop(ctx: Context<CancelAirdrop>) -> ProgramResult {
-        let (_pda, bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
-        let seeds = &[&PDA_SEED[..], &[bump_seed]];
 
-        msg!("Canceling airdrop! Giving ownership back to initializer...");
+pub fn cancel_airdrop(ctx: Context<CancelAirdrop>) -> ProgramResult {
+    let (_pda, bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
+    let seeds = &[&PDA_SEED[..], &[bump_seed]];
 
-        //todo check if anything else is needed to cancel airdrop for good
-        //todo check if airdrop could be paused and then continued...
 
-        // token::set_authority(
-        //     ctx.accounts
-        //         .into_set_authority_context()
-        //         .with_signer(&[&seeds[..]]),
-        //     AuthorityType::AccountOwner,
-        //     Some(ctx.accounts.airdrop_account.initializer_key),
-        // )?;
+    msg!("Canceling airdrop! Giving ownership back to initializer...");
 
-        Ok(())
-    }
+    //todo check if anything else is needed to cancel airdrop for good
+    //todo check if airdrop could be paused and then continued...
+
+
+    token::set_authority(
+        ctx.accounts
+            .into_set_authority_context()
+            .with_signer(&[&seeds[..]]),
+        AuthorityType::AccountOwner,
+        Some(ctx.accounts.airdrop_account.initializer_key),
+    )?;
+
+    Ok(())
 }
 
 #[derive(Accounts)]
@@ -118,6 +119,7 @@ pub struct GetAirdrop<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+
 #[derive(Accounts)]
 pub struct CancelAirdrop<'info> {
     pub initializer: AccountInfo<'info>,
@@ -125,13 +127,13 @@ pub struct CancelAirdrop<'info> {
     pub pda_deposit_token_account: Account<'info, TokenAccount>,
     pub pda_account: AccountInfo<'info>,
     #[account(
-        mut,
-        constraint = airdrop_account.initializer_key == *initializer.key,
-        constraint = airdrop_account.initializer_deposit_token_account == *pda_deposit_token_account.to_account_info().key,
-        close = initializer
+    mut,
+    constraint = airdrop_account.initializer_key == *initializer.key,
+    constraint = airdrop_account.initializer_deposit_token_account == *pda_deposit_token_account.to_account_info().key,
+    close = initializer
     )]
-    pub airdrop_account: Account<'info, AirdropAccount>,
-    pub token_program: Program<'info, Token>,
+    pub airdrop_account: ProgramAccount<'info, AirdropAccount>,
+    pub token_program: AccountInfo<'info>,
 }
 
 #[account]
@@ -173,13 +175,13 @@ impl<'info> GetAirdrop<'info> {
     }
 }
 
-// impl<'info> CancelAirdrop<'info> {
-//     fn into_set_authority_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
-//         let cpi_accounts = SetAuthority {
-//             account_or_mint: self.pda_deposit_token_account.to_account_info().clone(),
-//             current_authority: self.pda_account.clone(),
-//         };
-//         let cpi_program = self.token_program.to_account_info();
-//         CpiContext::new(cpi_program, cpi_accounts)
-//     }
-// }
+impl<'info> CancelAirdrop<'info> {
+    fn into_set_authority_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
+        let cpi_accounts = SetAuthority {
+            account_or_mint: self.pda_deposit_token_account.to_account_info().clone(),
+            current_authority: self.pda_account.clone(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}}

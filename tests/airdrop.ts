@@ -129,33 +129,67 @@ describe("airdrop", () => {
     assert.ok(_initializerTokenAccount.owner.equals(pda));
   });
 
-  it("Initialize airdrop and cancel airdrop", async () => {
-    //initializer cancels airdrop and gets back his token account ownership
+  //todo test multiple get airdrop calls
 
-    let _initializerTokenAccount = await mint.getAccountInfo(
-      initializerTokenAccount
+  it("Cancel airdrop", async () => {
+    let newAirdrop = Keypair.generate();
+
+    //reset test and then cancel airdrop
+    let newInitializerTokenAccount = await mint.createAccount(
+        provider.wallet.publicKey
     );
 
-    // Check that the new owner is still the PDA.
+    await mint.mintTo(
+        newInitializerTokenAccount,
+        mintAuthority.publicKey,
+        [mintAuthority],
+        initializerAmount
+    );
+
+    //initialize new account
+    await program.rpc.initializeAirdrop(
+        new BN(initializerAmount),
+        {
+          accounts: {
+            initializer: provider.wallet.publicKey,
+            initializerDepositTokenAccount: newInitializerTokenAccount,
+            airdropAccount: newAirdrop.publicKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          },
+          signers: [newAirdrop],
+        }
+    );
+
+    let _initializerTokenAccount = await mint.getAccountInfo(
+        newInitializerTokenAccount
+    );
+
+    // Check that the new owner is the PDA.
     assert.ok(_initializerTokenAccount.owner.equals(pda));
 
-    //todo not working :(
-    // Cancel the airdrop.
-    // await program.rpc.cancelAirdrop({
-    //   accounts: {
-    //     initializer: provider.wallet.publicKey,
-    //     pdaDepositTokenAccount: initializerTokenAccount,
-    //     pdaAccount: pda,
-    //     airdropAccount: airdropAccount.publicKey,
-    //     tokenProgram: TOKEN_PROGRAM_ID,
-    //   },
-    // });
-    //
-    // // // Check the final owner should be the provider public key.
-    //  _initializerTokenAccount = await mint.getAccountInfo(initializerTokenAccount);
-    //  assert.ok(_initializerTokenAccount.owner.equals(provider.wallet.publicKey));
-    //
-    // // Check all the funds are still there.
-    // assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount - 1);
+    // call the cancel
+    await program.rpc.cancelAirdrop({
+      accounts: {
+        initializer: provider.wallet.publicKey,
+        pdaDepositTokenAccount: newInitializerTokenAccount,
+        pdaAccount: pda,
+        airdropAccount: newAirdrop.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    });
+
+    _initializerTokenAccount = await mint.getAccountInfo(
+        newInitializerTokenAccount
+    );
+
+    // Check the final owner should be the initializer (provider public key).
+    assert.ok(
+        _initializerTokenAccount.owner.equals(provider.wallet.publicKey)
+    );
+
+    // Check all the funds are still there.
+    assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount);
   });
+
 });
