@@ -19,6 +19,7 @@ describe("airdrop", () => {
   let takerTokenAccount: PublicKey = null;
   let pda: PublicKey = null;
   const initializerAmount = 500;
+  const withdrawAmount = 500;
 
   const airdropAccount = Keypair.generate();
   const payer = Keypair.generate();
@@ -62,13 +63,14 @@ describe("airdrop", () => {
   it("Initialize airdrop", async () => {
     await program.rpc.initializeAirdrop(
       new BN(initializerAmount),
+      new BN(withdrawAmount),
       {
         accounts: {
           initializer: provider.wallet.publicKey,
           initializerDepositTokenAccount: initializerTokenAccount,
           airdropAccount: airdropAccount.publicKey,
           systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID
         },
         signers: [airdropAccount],
       }
@@ -122,8 +124,8 @@ describe("airdrop", () => {
       initializerTokenAccount
     );
 
-    assert.ok(_takerTokenAccount.amount.toNumber() == 1);
-    assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount - 1);
+    assert.ok(_takerTokenAccount.amount.toNumber() == withdrawAmount);
+    assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount - withdrawAmount);
 
     // Check that the new owner is still the PDA.
     assert.ok(_initializerTokenAccount.owner.equals(pda));
@@ -149,6 +151,7 @@ describe("airdrop", () => {
     //initialize new account
     await program.rpc.initializeAirdrop(
         new BN(initializerAmount),
+        new BN(withdrawAmount),
         {
           accounts: {
             initializer: provider.wallet.publicKey,

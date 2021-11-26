@@ -15,7 +15,8 @@ pub mod airdrop {
     // Until initializer cancels the airdrop, PDA is owner of initializer token account
     pub fn initialize_airdrop(
         ctx: Context<InitializeAirdrop>,
-        initializer_amount: u64
+        initializer_amount: u64,
+        withdraw_amount:u64
     ) -> ProgramResult {
         ctx.accounts.airdrop_account.initializer_key = *ctx.accounts.initializer.key;
         ctx.accounts
@@ -27,6 +28,7 @@ pub mod airdrop {
             .key;
 
         ctx.accounts.airdrop_account.initializer_amount = initializer_amount;
+        ctx.accounts.airdrop_account.withdraw_amount = withdraw_amount;
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
 
@@ -41,17 +43,13 @@ pub mod airdrop {
 
         msg!("Giving an airdrop...");
 
-        //todo parametrize amount to be take like (eg ctx.accounts.airdrop_account.withdraw_amount)
-        //hardcoded for  now
-        let withdraw_amount = 1;
-
         //todo implement a blacklist so taker can't call program multiple times?
 
         token::transfer(
             ctx.accounts
                 .into_transfer_to_taker_context()
                 .with_signer(&[&seeds[..]]),
-            withdraw_amount,
+            ctx.accounts.airdrop_account.withdraw_amount,
         )?;
 
         msg!("Taker got airdrop successfully!");
@@ -140,7 +138,8 @@ pub struct CancelAirdrop<'info> {
 pub struct AirdropAccount {
     pub initializer_key: Pubkey,
     pub initializer_deposit_token_account: Pubkey,
-    pub initializer_amount: u64
+    pub initializer_amount: u64,
+    pub withdraw_amount: u64
 }
 
 impl AirdropAccount {
