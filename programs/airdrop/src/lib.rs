@@ -15,7 +15,7 @@ pub mod airdrop {
     // Until initializer cancels the airdrop, PDA is owner of initializer token account
     pub fn initialize_airdrop(
         ctx: Context<InitializeAirdrop>,
-        initializer_amount: u64,
+        airdrop_amount: u64,
         withdraw_amount: u64,
     ) -> ProgramResult {
         ctx.accounts.airdrop_account.initializer_key = *ctx.accounts.initializer.key;
@@ -27,7 +27,7 @@ pub mod airdrop {
             .to_account_info()
             .key;
 
-        ctx.accounts.airdrop_account.initializer_amount = initializer_amount;
+        ctx.accounts.airdrop_account.airdrop_amount = airdrop_amount;
         ctx.accounts.airdrop_account.withdraw_amount = withdraw_amount;
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
@@ -78,13 +78,13 @@ pub mod airdrop {
     }
 
     #[derive(Accounts)]
-    #[instruction(initializer_amount: u64)]
+    #[instruction(airdrop_amount: u64)]
     pub struct InitializeAirdrop<'info> {
         #[account(signer)]
         pub initializer: AccountInfo<'info>,
         #[account(
         mut,
-        constraint = initializer_deposit_token_account.amount >= initializer_amount
+        constraint = initializer_deposit_token_account.amount >= airdrop_amount
     )]
         pub initializer_deposit_token_account: Account<'info, TokenAccount>,
         #[account(init, payer = initializer, space = 8 + AirdropAccount::LEN)]
@@ -134,7 +134,7 @@ pub mod airdrop {
     pub struct AirdropAccount {
         pub initializer_key: Pubkey,
         pub initializer_deposit_token_account: Pubkey,
-        pub initializer_amount: u64,
+        pub airdrop_amount: u64,
         pub withdraw_amount: u64,
     }
 

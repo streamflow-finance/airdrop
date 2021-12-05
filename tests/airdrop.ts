@@ -18,7 +18,7 @@ describe("airdrop", () => {
   let initializerTokenAccount: PublicKey = null;
   let takerTokenAccount: PublicKey = null;
   let pda: PublicKey = null;
-  const initializerAmount = 500;
+  const airdropAmount = 500;
   const withdrawAmount = 500;
 
   const airdropAccount = Keypair.generate();
@@ -50,19 +50,19 @@ describe("airdrop", () => {
       initializerTokenAccount,
       mintAuthority.publicKey,
       [mintAuthority],
-      initializerAmount
+      airdropAmount
     );
 
     let _initializerTokenAccountA = await mint.getAccountInfo(
       initializerTokenAccount
     );
 
-    assert.ok(_initializerTokenAccountA.amount.toNumber() == initializerAmount);
+    assert.ok(_initializerTokenAccountA.amount.toNumber() == airdropAmount);
   });
 
   it("Initialize airdrop", async () => {
     await program.rpc.initializeAirdrop(
-      new BN(initializerAmount),
+      new BN(airdropAmount),
       new BN(withdrawAmount),
       {
         accounts: {
@@ -96,7 +96,7 @@ describe("airdrop", () => {
 
     // Check that the values in the airdrop account match what we expect.
     assert.ok(_airdropAccount.initializerKey.equals(provider.wallet.publicKey));
-    assert.ok(_airdropAccount.initializerAmount.toNumber() == initializerAmount);
+    assert.ok(_airdropAccount.airdropAmount.toNumber() == airdropAmount);
     assert.ok(
       _airdropAccount.initializerDepositTokenAccount.equals(
         initializerTokenAccount
@@ -125,7 +125,7 @@ describe("airdrop", () => {
     );
 
     assert.ok(_takerTokenAccount.amount.toNumber() == withdrawAmount);
-    assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount - withdrawAmount);
+    assert.ok(_initializerTokenAccount.amount.toNumber() == airdropAmount - withdrawAmount);
 
     // Check that the new owner is still the PDA.
     assert.ok(_initializerTokenAccount.owner.equals(pda));
@@ -145,12 +145,12 @@ describe("airdrop", () => {
         newInitializerTokenAccount,
         mintAuthority.publicKey,
         [mintAuthority],
-        initializerAmount
+        airdropAmount
     );
 
     //initialize new account
     await program.rpc.initializeAirdrop(
-        new BN(initializerAmount),
+        new BN(airdropAmount),
         new BN(withdrawAmount),
         {
           accounts: {
@@ -192,7 +192,7 @@ describe("airdrop", () => {
     );
 
     // Check all the funds are still there.
-    assert.ok(_initializerTokenAccount.amount.toNumber() == initializerAmount);
+    assert.ok(_initializerTokenAccount.amount.toNumber() == airdropAmount);
   });
 
 });
