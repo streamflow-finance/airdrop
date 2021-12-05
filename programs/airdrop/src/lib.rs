@@ -32,6 +32,14 @@ pub mod airdrop {
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
 
+        let seeds = &[&PDA_SEED[..], &[_bump_seed]];
+        token::transfer(
+            ctx.accounts
+                .transfer_amount_to_airdrop()
+                .with_signer(&[&seeds[..]]),
+            ctx.accounts.airdrop_account.airdrop_amount,
+        )?;
+
         // Transfer initializer token account ownership to PDA
         token::set_authority(ctx.accounts.into(), AuthorityType::AccountOwner, Some(pda))?;
         Ok(())
@@ -42,8 +50,6 @@ pub mod airdrop {
         let seeds = &[&PDA_SEED[..], &[bump_seed]];
 
         msg!("Giving an airdrop...");
-
-        //todo implement a blacklist so taker can't call program multiple times?
 
         token::transfer(
             ctx.accounts
@@ -62,9 +68,6 @@ pub mod airdrop {
         let seeds = &[&PDA_SEED[..], &[bump_seed]];
 
         msg!("Canceling airdrop! Giving ownership back to initializer...");
-
-        //todo check if anything else is needed to cancel airdrop for good
-        //todo check if airdrop could be paused and then continued...
 
         token::set_authority(
             ctx.accounts
@@ -87,15 +90,20 @@ pub mod airdrop {
         constraint = initializer_deposit_token_account.amount >= airdrop_amount
     )]
         pub initializer_deposit_token_account: Account<'info, TokenAccount>,
+
         #[account(init, payer = initializer, space = 8 + AirdropAccount::LEN)]
         pub airdrop_account: Account<'info, AirdropAccount>,
+
+        #[account(mut)]
+        pub airdrop_token_account: Account<'info, TokenAccount>,
+
         pub system_program: Program<'info, System>,
         pub token_program: Program<'info, Token>,
     }
 
     #[derive(Accounts)]
     pub struct GetAirdrop<'info> {
-        #[account(signer)]
+        #[account(mut)]
         pub taker: AccountInfo<'info>,
         #[account(mut)]
         pub taker_receive_token_account: Account<'info, TokenAccount>,
@@ -105,11 +113,16 @@ pub mod airdrop {
         pub initializer_main_account: AccountInfo<'info>,
         #[account(
         mut,
+        signer,
         constraint = airdrop_account.initializer_deposit_token_account == *pda_deposit_token_account.to_account_info().key,
         constraint = airdrop_account.initializer_key == *initializer_main_account.key,
         close = initializer_main_account
     )]
         pub airdrop_account: Account<'info, AirdropAccount>,
+
+        #[account(mut)]
+        pub airdrop_token_account: Account<'info, TokenAccount>,
+
         pub pda_account: AccountInfo<'info>,
         pub token_program: Program<'info, Token>,
     }
@@ -148,10 +161,10 @@ pub mod airdrop {
         fn from(accounts: &mut InitializeAirdrop<'info>) -> Self {
             let cpi_accounts = SetAuthority {
                 account_or_mint: accounts
-                    .initializer_deposit_token_account
+                    .airdrop_token_account
                     .to_account_info()
                     .clone(),
-                current_authority: accounts.initializer.clone(),
+                current_authority: accounts.airdrop_account.to_account_info().clone(),
             };
             let cpi_program = accounts.token_program.to_account_info();
             CpiContext::new(cpi_program, cpi_accounts)
@@ -160,10 +173,23 @@ pub mod airdrop {
 
     impl<'info> GetAirdrop<'info> {
         fn into_transfer_to_taker_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+            msg!("Inside context...");
             let cpi_accounts = Transfer {
-                from: self.pda_deposit_token_account.to_account_info().clone(),
+                from: self.airdrop_token_account.to_account_info().clone(),
                 to: self.taker_receive_token_account.to_account_info().clone(),
-                authority: self.pda_account.clone(),
+                authority: self.pda_account.to_account_info().clone(),
+            };
+            let cpi_program = self.token_program.to_account_info();
+            CpiContext::new(cpi_program, cpi_accounts)
+        }
+    }
+
+    impl<'info> InitializeAirdrop<'info> {
+        fn transfer_amount_to_airdrop(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+            let cpi_accounts = Transfer {
+                from: self.initializer_deposit_token_account.to_account_info().clone(),
+                to: self.airdrop_token_account.to_account_info().clone(),
+                authority: self.initializer.clone(),
             };
             let cpi_program = self.token_program.to_account_info();
             CpiContext::new(cpi_program, cpi_accounts)
