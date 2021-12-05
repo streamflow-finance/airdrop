@@ -139,7 +139,7 @@ pub mod airdrop {
     }
 
     impl AirdropAccount {
-        pub const LEN: usize = 32 + 32 + 32 + 8 + 8;
+        pub const LEN: usize = 32 + 32 + 8 + 8;
     }
 
     impl<'info> From<&mut InitializeAirdrop<'info>>
