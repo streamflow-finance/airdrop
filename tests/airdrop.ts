@@ -122,8 +122,6 @@ describe("airdrop", () => {
       accounts: {
         taker: provider.wallet.publicKey,
         takerReceiveTokenAccount: takerTokenAccount,
-        pdaDepositTokenAccount: initializerTokenAccount,
-        initializerMainAccount: provider.wallet.publicKey,
         airdropAccount: airdropAccount.publicKey,
         airdropTokenAccount: airdropTokenAccount,
         pdaAccount: pda,

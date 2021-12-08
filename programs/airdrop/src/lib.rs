@@ -111,14 +111,9 @@ pub mod airdrop {
         pub taker: AccountInfo<'info>,
         #[account(mut)]
         pub taker_receive_token_account: Account<'info, TokenAccount>,
-        #[account(mut)]
-        pub initializer_main_account: AccountInfo<'info>,
         #[account(
         mut,
-        signer,
-        constraint = airdrop_account.initializer_key == *initializer_main_account.key,
-        close = initializer_main_account
-    )]
+        signer)]
         pub airdrop_account: Account<'info, AirdropAccount>,
 
         #[account(mut)]
