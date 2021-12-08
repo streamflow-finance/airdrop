@@ -212,7 +212,7 @@ describe("airdrop", () => {
     await program.rpc.cancelAirdrop({
       accounts: {
         initializer: provider.wallet.publicKey,
-        pdaDepositTokenAccount: newInitializerTokenAccount,
+        initializerDepositTokenAccount: newInitializerTokenAccount,
         pdaAccount: pda,
         airdropAccount: newAirdrop.publicKey,
         airdropTokenAccount: newAirdropTokenAccount,
@@ -220,15 +220,6 @@ describe("airdrop", () => {
       },
       signers: [newAirdrop],
     });
-
-    _newAirdropTokenAccount = await mint.getAccountInfo(
-        newAirdropTokenAccount
-    );
-
-    // Check the final owner should be the initializer (provider public key).
-    // assert.ok(
-    //     _newAirdropTokenAccount.owner.equals(provider.wallet.publicKey)
-    // ); todo
 
     _newInitializerTokenAccount = await mint.getAccountInfo(
         newInitializerTokenAccount
