@@ -27,7 +27,12 @@ pub mod airdrop {
             .to_account_info()
             .key;
 
-        ctx.accounts.airdrop_account.airdrop_amount = airdrop_amount;
+        ctx.accounts.airdrop_account.airdrop_token_account = *ctx
+            .accounts
+            .airdrop_token_account
+            .to_account_info()
+            .key;
+
         ctx.accounts.airdrop_account.withdraw_amount = withdraw_amount;
 
         let (pda, _bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
@@ -37,7 +42,7 @@ pub mod airdrop {
             ctx.accounts
                 .transfer_amount_to_airdrop()
                 .with_signer(&[&seeds[..]]),
-            ctx.accounts.airdrop_account.airdrop_amount,
+            airdrop_amount,
         )?;
 
         // Transfer initializer token account ownership to PDA
@@ -150,12 +155,12 @@ pub mod airdrop {
     pub struct AirdropAccount {
         pub initializer_key: Pubkey,
         pub initializer_deposit_token_account: Pubkey,
-        pub airdrop_amount: u64,
+        pub airdrop_token_account: Pubkey,
         pub withdraw_amount: u64,
     }
 
     impl AirdropAccount {
-        pub const LEN: usize = 32 + 32 + 8 + 8;
+        pub const LEN: usize = 32 + 32 + 32 + 8 ;
     }
 
     impl<'info> From<&mut InitializeAirdrop<'info>>
