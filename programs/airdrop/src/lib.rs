@@ -3,7 +3,7 @@ use anchor_spl::token::{self, SetAuthority, Token, TokenAccount, Transfer};
 use spl_token::instruction::AuthorityType;
 
 //Defines the program's ID. This should be used at the root of all Anchor based programs.
-declare_id!("Mg6PaZpoDXkFvimZpWWK9WBeZ8FCfcGkgG76zSSsMn1");
+declare_id!("37iwyvmhqvELbkZdgyE46TWKMvhYuCxw2137ZNkypZvy");
 
 #[program]
 pub mod airdrop {
@@ -76,10 +76,16 @@ pub mod airdrop {
 
         token::transfer(
             ctx.accounts
-                .cancel_airdrop()
+                .refund_to_initilizer()
                 .with_signer(&[&seeds[..]]),
             ctx.accounts.airdrop_token_account.amount,
         )?;
+
+
+            ctx.accounts
+                .into_set_close_airdrop_context()
+                .with_signer(&[&seeds[..]]);
+
 
         Ok(())
     }
@@ -107,13 +113,12 @@ pub mod airdrop {
 
     #[derive(Accounts)]
     pub struct GetAirdrop<'info> {
-        #[account(mut)]
+        #[account(signer)]
         pub taker: AccountInfo<'info>,
         #[account(mut)]
         pub taker_receive_token_account: Account<'info, TokenAccount>,
         #[account(
-        mut,
-        signer)]
+        mut)]
         pub airdrop_account: Account<'info, AirdropAccount>,
 
         #[account(mut)]
@@ -125,6 +130,7 @@ pub mod airdrop {
 
     #[derive(Accounts)]
     pub struct CancelAirdrop<'info> {
+        #[account(signer)]
         pub initializer: AccountInfo<'info>,
         #[account(
         mut,
@@ -134,7 +140,6 @@ pub mod airdrop {
         pub pda_account: AccountInfo<'info>,
         #[account(
     mut,
-    signer,
     constraint = airdrop_account.initializer_key == *initializer.key,
     close = initializer
     )]
@@ -199,7 +204,7 @@ pub mod airdrop {
     }
 
     impl<'info> CancelAirdrop<'info> {
-        fn cancel_airdrop(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        fn refund_to_initilizer(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
             let cpi_accounts = Transfer {
                 from: self.airdrop_token_account.to_account_info().clone(),
                 to: self.initializer_deposit_token_account.to_account_info().clone(),
@@ -209,4 +214,15 @@ pub mod airdrop {
             CpiContext::new(cpi_program, cpi_accounts)
         }
     }
+
+    impl<'info> CancelAirdrop<'info> {
+        fn into_set_close_airdrop_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
+            let cpi_accounts = SetAuthority {
+                account_or_mint: self.initializer.to_account_info().clone(),
+                current_authority: self.pda_account.clone(),
+            };
+            CpiContext::new(self.token_program.clone(), cpi_accounts)
+        }
+    }
+
 }

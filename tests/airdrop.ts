@@ -127,7 +127,6 @@ describe("airdrop", () => {
         pdaAccount: pda,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
-      signers: [airdropAccount]
     });
 
     let _takerTokenAccount = await mint.getAccountInfo(takerTokenAccount);
@@ -216,7 +215,6 @@ describe("airdrop", () => {
         airdropTokenAccount: newAirdropTokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
-      signers: [newAirdrop],
     });
 
     _newInitializerTokenAccount = await mint.getAccountInfo(
