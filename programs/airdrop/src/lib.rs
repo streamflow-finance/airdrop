@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, SetAuthority, Token, TokenAccount, Transfer};
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::{self, Mint, SetAuthority, Token, TokenAccount, Transfer};
 use spl_token::instruction::AuthorityType;
 
 //Defines the program's ID. This should be used at the root of all Anchor based programs.
@@ -110,17 +111,18 @@ pub mod airdrop {
     pub struct GetAirdrop<'info> {
         #[account(signer)]
         pub taker: AccountInfo<'info>,
-        #[account(mut)]
+        #[account(init_if_needed, associated_token::mint = mint, associated_token::authority = taker, payer = taker)]
         pub taker_receive_token_account: Account<'info, TokenAccount>,
-        #[account(
-        mut)]
+        #[account(mut)]
         pub airdrop_account: Account<'info, AirdropAccount>,
-
+        pub mint: Account<'info, Mint>,
         #[account(mut)]
         pub airdrop_token_account: Account<'info, TokenAccount>,
-
         pub pda_account: AccountInfo<'info>,
         pub token_program: Program<'info, Token>,
+        pub associated_token_program: Program<'info, AssociatedToken>,
+        pub system_program: Program<'info, System>,
+        pub rent: Sysvar<'info, Rent>,
     }
 
     #[derive(Accounts)]
