@@ -27,11 +27,8 @@ pub mod airdrop {
             .to_account_info()
             .key;
 
-        ctx.accounts.airdrop_account.airdrop_token_account = *ctx
-            .accounts
-            .airdrop_token_account
-            .to_account_info()
-            .key;
+        ctx.accounts.airdrop_account.airdrop_token_account =
+            *ctx.accounts.airdrop_token_account.to_account_info().key;
 
         ctx.accounts.airdrop_account.withdraw_amount = withdraw_amount;
 
@@ -81,11 +78,9 @@ pub mod airdrop {
             ctx.accounts.airdrop_token_account.amount,
         )?;
 
-
-            ctx.accounts
-                .into_set_close_airdrop_context()
-                .with_signer(&[&seeds[..]]);
-
+        ctx.accounts
+            .into_set_close_airdrop_context()
+            .with_signer(&[&seeds[..]]);
 
         Ok(())
     }
@@ -130,7 +125,7 @@ pub mod airdrop {
 
     #[derive(Accounts)]
     pub struct CancelAirdrop<'info> {
-        #[account(mut,signer)]
+        #[account(mut, signer)]
         pub initializer: AccountInfo<'info>,
         #[account(
         mut,
@@ -143,7 +138,7 @@ pub mod airdrop {
     constraint = airdrop_account.initializer_key == *initializer.key,
     close = initializer
     )]
-        pub airdrop_account: ProgramAccount<'info, AirdropAccount>,
+        pub airdrop_account: Account<'info, AirdropAccount>,
 
         #[account(mut)]
         pub airdrop_token_account: Account<'info, TokenAccount>,
@@ -160,7 +155,7 @@ pub mod airdrop {
     }
 
     impl AirdropAccount {
-        pub const LEN: usize = 32 + 32 + 32 + 8 ;
+        pub const LEN: usize = 32 + 32 + 32 + 8;
     }
 
     impl<'info> From<&mut InitializeAirdrop<'info>>
@@ -168,10 +163,7 @@ pub mod airdrop {
     {
         fn from(accounts: &mut InitializeAirdrop<'info>) -> Self {
             let cpi_accounts = SetAuthority {
-                account_or_mint: accounts
-                    .airdrop_token_account
-                    .to_account_info()
-                    .clone(),
+                account_or_mint: accounts.airdrop_token_account.to_account_info().clone(),
                 current_authority: accounts.airdrop_account.to_account_info().clone(),
             };
             let cpi_program = accounts.token_program.to_account_info();
@@ -182,7 +174,10 @@ pub mod airdrop {
     impl<'info> InitializeAirdrop<'info> {
         fn transfer_amount_to_airdrop(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
             let cpi_accounts = Transfer {
-                from: self.initializer_deposit_token_account.to_account_info().clone(),
+                from: self
+                    .initializer_deposit_token_account
+                    .to_account_info()
+                    .clone(),
                 to: self.airdrop_token_account.to_account_info().clone(),
                 authority: self.initializer.clone(),
             };
@@ -207,7 +202,10 @@ pub mod airdrop {
         fn refund_to_initilizer(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
             let cpi_accounts = Transfer {
                 from: self.airdrop_token_account.to_account_info().clone(),
-                to: self.initializer_deposit_token_account.to_account_info().clone(),
+                to: self
+                    .initializer_deposit_token_account
+                    .to_account_info()
+                    .clone(),
                 authority: self.pda_account.to_account_info().clone(),
             };
             let cpi_program = self.token_program.to_account_info();
@@ -216,7 +214,9 @@ pub mod airdrop {
     }
 
     impl<'info> CancelAirdrop<'info> {
-        fn into_set_close_airdrop_context(&self) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
+        fn into_set_close_airdrop_context(
+            &self,
+        ) -> CpiContext<'_, '_, '_, 'info, SetAuthority<'info>> {
             let cpi_accounts = SetAuthority {
                 account_or_mint: self.initializer.to_account_info().clone(),
                 current_authority: self.pda_account.clone(),
@@ -224,5 +224,4 @@ pub mod airdrop {
             CpiContext::new(self.token_program.clone(), cpi_accounts)
         }
     }
-
 }
