@@ -1,5 +1,5 @@
 # Airdrop tokens
-Program to provide users airdrop of selected token
+Solana (Anchor) program to provide users airdrop of selected token
 
 ## Initialize airdrop account
 Initializer creates setups airdrop with given settings, like token and withdraw amount.
