@@ -17,4 +17,6 @@ It will refund all remaining tokens to initializer associated token account,
 and close all program accounts.
 
 
+
+
 Created with :heart: by [schananas](https://github.com/schananas)
