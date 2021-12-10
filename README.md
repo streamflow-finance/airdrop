@@ -11,7 +11,7 @@ User calls get airdrop method to get airdrop token.
 Amount is limited by withdraw_amount setting.
 If user's associated token account does not exist it will be created automatically.
 
-##Cancel airdrop
+## Cancel airdrop
 Initializer of airdrop can cancel airdrop by calling cancel airdrop method.
 It will refund all remaining tokens to initializer associated token account,
 and close all program accounts.
