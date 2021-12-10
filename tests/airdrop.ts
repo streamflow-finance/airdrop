@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program, BN, IdlAccounts } from "@project-serum/anchor";
 import { PublicKey, Keypair, SystemProgram } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, Token, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { assert } from "chai";
 // @ts-ignore
 import { Airdrop } from "../target/types/airdrop";
@@ -123,9 +123,13 @@ describe("airdrop", () => {
         taker: provider.wallet.publicKey,
         takerReceiveTokenAccount: takerTokenAccount,
         airdropAccount: airdropAccount.publicKey,
+        mint: mint.publicKey,
         airdropTokenAccount: airdropTokenAccount,
         pdaAccount: pda,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY
       },
     });
 
