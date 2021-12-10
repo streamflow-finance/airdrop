@@ -45,7 +45,13 @@ describe("airdrop", () => {
     initializerTokenAccount = await mint.createAccount(
       provider.wallet.publicKey
     );
-    takerTokenAccount = await mint.createAccount(provider.wallet.publicKey);
+     //get associated token address - without creating token account
+    takerTokenAccount = await Token.getAssociatedTokenAddress(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        mint.publicKey,
+        program.provider.wallet.publicKey
+    );
 
     await mint.mintTo(
       initializerTokenAccount,
