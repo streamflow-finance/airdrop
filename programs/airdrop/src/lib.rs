@@ -4,7 +4,7 @@ use anchor_spl::token::{self, Mint, SetAuthority, Token, TokenAccount, Transfer}
 use spl_token::instruction::AuthorityType;
 
 //Defines the program's ID. This should be used at the root of all Anchor based programs.
-declare_id!("37iwyvmhqvELbkZdgyE46TWKMvhYuCxw2137ZNkypZvy");
+declare_id!("Ek6Jpdv5iEEDLXTVQ8UFcntms3DT2ewHtzzwH2R5MpvN");
 
 #[program]
 pub mod airdrop {
@@ -30,19 +30,19 @@ pub mod airdrop {
 
         ctx.accounts.airdrop_account.airdrop_token_account =
             *ctx.accounts.airdrop_token_account.to_account_info().key;
-
+            msg!("ok 1");
         ctx.accounts.airdrop_account.withdraw_amount = withdraw_amount;
-
+        msg!("ok 2");
         let (pda, _bump_seed) = Pubkey::find_program_address(&[PDA_SEED], ctx.program_id);
         let seeds = &[&PDA_SEED[..], &[_bump_seed]];
-
+        msg!("ok 3");
         token::transfer(
             ctx.accounts
                 .transfer_amount_to_airdrop()
                 .with_signer(&[&seeds[..]]),
             airdrop_amount,
         )?;
-
+        msg!("ok 4");
         // Transfer initializer token account ownership to PDA
         token::set_authority(ctx.accounts.into(), AuthorityType::AccountOwner, Some(pda))?;
         Ok(())
@@ -97,7 +97,7 @@ pub mod airdrop {
     )]
         pub initializer_deposit_token_account: Account<'info, TokenAccount>,
 
-        #[account(init, payer = initializer, space = 8 + AirdropAccount::LEN)]
+        #[account(init, payer = initializer, space = AirdropAccount::LEN)]
         pub airdrop_account: Account<'info, AirdropAccount>,
 
         #[account(mut)]

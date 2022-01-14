@@ -3,7 +3,7 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-airdrop = "37iwyvmhqvELbkZdgyE46TWKMvhYuCxw2137ZNkypZvy"
+airdrop = "HuKVj665DMYhWMFE3zUsdiiA62MQ7dU6x5M6uhqjCpYY"
 
 [programs.devnet]
 aidrop = "37iwyvmhqvELbkZdgyE46TWKMvhYuCxw2137ZNkypZvy"
